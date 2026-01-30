@@ -21,7 +21,7 @@ func (s *CategoryService) GetByID(id int) (*models.Category, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *CategoryService) GetByIDWithProducts(id int) (*models.Category, error) {
+func (s *CategoryService) GetByIDWithProducts(id int) (*models.CategoryWithProducts, error) {
 	return s.repo.GetByIDWithProducts(id)
 }
 

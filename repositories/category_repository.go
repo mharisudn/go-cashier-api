@@ -59,9 +59,9 @@ func (repo *CategoryRepository) GetByID(id int) (*models.Category, error) {
 }
 
 // Get Category By ID with Products
-func (repo *CategoryRepository) GetByIDWithProducts(id int) (*models.Category, error) {
+func (repo *CategoryRepository) GetByIDWithProducts(id int) (*models.CategoryWithProducts, error) {
 	query := "SELECT id, name, description FROM categories WHERE id = $1"
-	var cat models.Category
+	var cat models.CategoryWithProducts
 	err := repo.db.QueryRow(query, id).Scan(&cat.ID, &cat.Name, &cat.Description)
 	if err == sql.ErrNoRows {
 		return nil, errors.New("Category not found")

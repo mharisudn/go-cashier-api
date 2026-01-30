@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"cashier-api/helpers"
 	"cashier-api/models"
 	"cashier-api/services"
 	"encoding/json"
@@ -25,38 +26,35 @@ func (h *ProductHandler) HandleProducts(w http.ResponseWriter, r *http.Request) 
 	case http.MethodPost:
 		h.Create(w, r)
 	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		helpers.JSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
 	}
 }
 
 func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	products, err := h.service.GetAll()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		helpers.JSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(products)
+	helpers.JSONResponse(w, http.StatusOK, "Products retrieved successfully", products)
 }
 
 func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var product models.ProductCreate
 	err := json.NewDecoder(r.Body).Decode(&product)
 	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		helpers.JSONError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	err = h.service.Create(&product)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		helpers.JSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(product)
+	helpers.JSONResponse(w, http.StatusCreated, "Product created successfully", product)
 }
 
 func (h *ProductHandler) HandleProductByID(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +66,7 @@ func (h *ProductHandler) HandleProductByID(w http.ResponseWriter, r *http.Reques
 	case http.MethodDelete:
 		h.Delete(w, r)
 	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		helpers.JSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
 	}
 }
 
@@ -76,62 +74,57 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/api/products/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid product ID", http.StatusBadRequest)
+		helpers.JSONError(w, http.StatusBadRequest, "Invalid product ID")
 		return
 	}
 
 	product, err := h.service.GetByID(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		helpers.JSONError(w, http.StatusNotFound, err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(product)
+	helpers.JSONResponse(w, http.StatusOK, "Product retrieved successfully", product)
 }
 
 func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/api/products/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid product ID", http.StatusBadRequest)
+		helpers.JSONError(w, http.StatusBadRequest, "Invalid product ID")
 		return
 	}
 
 	var product models.ProductUpdate
 	err = json.NewDecoder(r.Body).Decode(&product)
 	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		helpers.JSONError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	product.ID = id
 	err = h.service.Update(&product)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		helpers.JSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(product)
+	helpers.JSONResponse(w, http.StatusOK, "Product updated successfully", product)
 }
 
 func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/api/products/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid product ID", http.StatusBadRequest)
+		helpers.JSONError(w, http.StatusBadRequest, "Invalid product ID")
 		return
 	}
 
 	err = h.service.Delete(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		helpers.JSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Product deleted successfully",
-	})
+	helpers.JSONResponse(w, http.StatusOK, "Product deleted successfully", nil)
 }

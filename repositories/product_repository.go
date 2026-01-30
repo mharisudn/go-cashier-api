@@ -4,6 +4,8 @@ import (
 	"cashier-api/models"
 	"database/sql"
 	"errors"
+
+	"github.com/lib/pq"
 )
 
 type ProductRepository struct {
@@ -58,7 +60,15 @@ func (repo *ProductRepository) GetAll() ([]models.Product, error) {
 func (repo *ProductRepository) Create(product *models.ProductCreate) error {
 	query := "INSERT INTO products (name, price, stock, category_id) VALUES ($1, $2, $3, $4) RETURNING id"
 	err := repo.db.QueryRow(query, product.Name, product.Price, product.Stock, product.CategoryID).Scan(&product.ID)
-	return err
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			if pqErr.Code == "23503" {
+				return errors.New("Category ID not found")
+			}
+		}
+		return err
+	}
+	return nil
 }
 
 func (repo *ProductRepository) GetByID(id int) (*models.Product, error) {
@@ -101,6 +111,11 @@ func (repo *ProductRepository) Update(product *models.ProductUpdate) error {
 	query := "UPDATE products SET name = $1, price = $2, stock = $3, category_id = $4 WHERE id = $5"
 	result, err := repo.db.Exec(query, product.Name, product.Price, product.Stock, product.CategoryID, product.ID)
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			if pqErr.Code == "23503" {
+				return errors.New("Category ID not found")
+			}
+		}
 		return err
 	}
 	// Check Affected Rows

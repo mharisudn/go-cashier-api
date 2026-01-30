@@ -3,9 +3,9 @@ package main
 import (
 	"cashier-api/database"
 	"cashier-api/handlers"
+	"cashier-api/helpers"
 	"cashier-api/repositories"
 	"cashier-api/services"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -56,11 +56,7 @@ func main() {
 	http.HandleFunc("/api/categories/", categoryHandler.HandleCategoryByID)
 
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"status":  "OK",
-			"message": "API Running",
-		})
+		helpers.JSONResponse(w, http.StatusOK, "API Running", nil)
 	})
 
 	addr := "0.0.0.0:" + config.Port
