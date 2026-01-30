@@ -21,7 +21,7 @@ func (s *ProductService) GetByID(id int) (*models.Product, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *ProductService) Create(product *models.Product) error {
+func (s *ProductService) Create(product *models.ProductCreate) error {
 	return s.repo.Create(product)
 }
 

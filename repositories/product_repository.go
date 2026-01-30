@@ -55,7 +55,7 @@ func (repo *ProductRepository) GetAll() ([]models.Product, error) {
 	return products, nil
 }
 
-func (repo *ProductRepository) Create(product *models.Product) error {
+func (repo *ProductRepository) Create(product *models.ProductCreate) error {
 	query := "INSERT INTO products (name, price, stock, category_id) VALUES ($1, $2, $3, $4) RETURNING id"
 	err := repo.db.QueryRow(query, product.Name, product.Price, product.Stock, product.CategoryID).Scan(&product.ID)
 	return err
