@@ -16,8 +16,13 @@ import (
 )
 
 type config struct {
-	Port   string `mapstructure:"PORT"`
-	DBConn string `mapstructure:"DB_CONN"`
+	Port       string `mapstructure:"PORT"`
+	DBHost     string `mapstructure:"DB_HOST"`
+	DBPort     string `mapstructure:"DB_PORT"`
+	DBUser     string `mapstructure:"DB_USER"`
+	DBPassword string `mapstructure:"DB_PASSWORD"`
+	DBName     string `mapstructure:"DB_NAME"`
+	DBSslMode  string `mapstructure:"DB_SSLMODE"`
 }
 
 func main() {
@@ -26,16 +31,27 @@ func main() {
 
 	if _, err := os.Stat(".env"); err == nil {
 		viper.SetConfigFile(".env")
-		_ = viper.ReadInConfig()
+		if err := viper.ReadInConfig(); err != nil {
+			log.Fatalf("Error reading config file: %v", err)
+		}
 	}
 
-	config := config{
-		Port:   viper.GetString("PORT"),
-		DBConn: viper.GetString("DB_CONN"),
+	var cfg config
+	if err := viper.Unmarshal(&cfg); err != nil {
+		log.Fatalf("Error unmarshalling config: %v", err)
 	}
+
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		cfg.DBUser,
+		cfg.DBPassword,
+		cfg.DBHost,
+		cfg.DBPort,
+		cfg.DBName,
+		cfg.DBSslMode,
+	)
 
 	// Initialize database
-	db, err := database.InitDB(config.DBConn)
+	db, err := database.InitDB(dsn)
 	if err != nil {
 		log.Fatal("Failed to initialize database:", err)
 	}
@@ -59,7 +75,7 @@ func main() {
 		helpers.JSONResponse(w, http.StatusOK, "API Running", nil)
 	})
 
-	addr := "0.0.0.0:" + config.Port
+	addr := "0.0.0.0:" + cfg.Port
 	fmt.Println("Server running at", addr)
 
 	err = http.ListenAndServe(addr, nil)
